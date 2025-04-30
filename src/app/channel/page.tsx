@@ -1,7 +1,8 @@
+'use client';
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useChatStore } from "@/stores/chat-store";
 
@@ -13,6 +14,13 @@ export default function ChannelPage() {
   const setStoreUsername = useChatStore((state) => state.setUsername);
   const storeUsername = useChatStore((state) => state.username);
   
+  // 초기 값 설정
+  useEffect(() => {
+    if (storeUsername && storeUsername !== "익명") {
+      setUsername(storeUsername);
+    }
+  }, [storeUsername]);
+  
   // 사용자 이름 설정 핸들러
   const handleSetUsername = () => {
     if (username.trim()) {
@@ -21,11 +29,11 @@ export default function ChannelPage() {
   };
   
   return (
-    <div className="container max-w-6xl py-6">
-      <h1 className="text-3xl font-bold text-center mb-8">SSE 실시간 채팅</h1>
+    <div className="container max-w-5xl py-12">
+      <h1 className="text-4xl font-bold text-center mb-10">SSE 실시간 채팅</h1>
       
       {/* 사용자 이름 설정 */}
-      <Card className="p-6 mb-8 max-w-md mx-auto">
+      <Card className="p-6 mb-10">
         <h2 className="text-xl font-semibold mb-4">사용자 이름 설정</h2>
         <div className="flex gap-2">
           <Input
@@ -43,26 +51,26 @@ export default function ChannelPage() {
         )}
       </Card>
 
-      {/* 채널 목록 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* 채널 영역 - 2단 그리드 레이아웃 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* 미리 정의된 채널 */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">공개 채널</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-2">
             {PREDEFINED_CHANNELS.map((channel) => (
-              <Button key={channel} variant="outline" asChild className="justify-start">
-                <Link href={`/(room)/${channel}`}>
+              <Button key={channel} variant="outline" asChild className="justify-start h-12">
+                <Link href={`/room/${channel}`}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
+                    width="20"
+                    height="20"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="mr-2"
+                    className="mr-3"
                   >
                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
                   </svg>
@@ -82,12 +90,17 @@ export default function ChannelPage() {
                 placeholder="채널 이름 (3자 이상)"
                 value={customChannel}
                 onChange={(e) => setCustomChannel(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && customChannel.length >= 3) {
+                    window.location.href = `/room/${customChannel}`;
+                  }
+                }}
               />
               <Button
                 disabled={customChannel.length < 3}
                 asChild
               >
-                <Link href={customChannel.length >= 3 ? `/(room)/${customChannel}` : "#"}>
+                <Link href={customChannel.length >= 3 ? `/room/${customChannel}` : "#"}>
                   입장
                 </Link>
               </Button>

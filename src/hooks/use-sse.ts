@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useChatStore, ChatMessage } from '@/stores/chat-store';
 
 interface UseSSEProps {
@@ -13,6 +13,9 @@ interface UseSSEProps {
 export function useSSE({ channelId, enabled = true }: UseSSEProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const reconnectAttemptsRef = useRef(0);
+  const maxReconnectAttempts = 5;
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // 채팅 스토어에서 필요한 상태와 액션 가져오기
   const {
@@ -32,7 +35,7 @@ export function useSSE({ channelId, enabled = true }: UseSSEProps) {
     }
 
     try {
-      const response = await fetch(`/api/sse/${channelId}`, {
+      const response = await fetch(`/api/room/${channelId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,7 +61,7 @@ export function useSSE({ channelId, enabled = true }: UseSSEProps) {
   useEffect(() => {
     // enabled가 false면 연결하지 않음
     if (!enabled || !channelId) return;
-
+    
     let eventSource: EventSource | null = null;
     
     const connectSSE = () => {
@@ -71,12 +74,13 @@ export function useSSE({ channelId, enabled = true }: UseSSEProps) {
       }
 
       // 새 SSE 연결 생성
-      eventSource = new EventSource(`/api/sse/${channelId}`);
+      eventSource = new EventSource(`/api/room/${channelId}`);
 
       // 연결 시작 이벤트 핸들러
       eventSource.onopen = () => {
         setLoading(false);
         setIsConnected(true);
+        reconnectAttemptsRef.current = 0; // 연결 성공 시 재시도 카운터 초기화
       };
 
       // 메시지 수신 이벤트 핸들러
@@ -115,13 +119,26 @@ export function useSSE({ channelId, enabled = true }: UseSSEProps) {
         setIsConnected(false);
         setLoading(false);
         
-        // 자동 재연결 시도 (3초 후)
-        setTimeout(() => {
-          if (eventSource) {
-            eventSource.close();
-            connectSSE();
+        // 재연결 시도 횟수 제한
+        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+          reconnectAttemptsRef.current += 1;
+          
+          // 이전 타이머가 있다면 정리
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
           }
-        }, 3000);
+          
+          // 자동 재연결 시도 (지수 백오프 - 시간이 갈수록 대기 시간 증가)
+          const delay = Math.min(3000 * Math.pow(2, reconnectAttemptsRef.current - 1), 30000);
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (eventSource) {
+              eventSource.close();
+              connectSSE();
+            }
+          }, delay);
+        } else {
+          setError('서버 연결에 실패했습니다. 페이지를 새로고침하여 다시 시도해주세요.');
+        }
       };
     };
 
@@ -130,6 +147,10 @@ export function useSSE({ channelId, enabled = true }: UseSSEProps) {
 
     // 컴포넌트 언마운트 또는 채널 변경 시 정리
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      
       if (eventSource) {
         eventSource.close();
         setIsConnected(false);

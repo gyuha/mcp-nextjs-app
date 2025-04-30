@@ -3,12 +3,12 @@
 import { ChatRoom } from "@/components/chatting/chat-room";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useEffect } from "react";
 import { useChatStore } from "@/stores/chat-store";
 
-export default async function RoomPage({ params }: { params: { channelId: string } }) {
-  const { channelId } = await params;
-  const { activeChannel, username } = useChatStore();
+export default function RoomPage({ params }: { params: { channelId: string } }) {
+  // Next.js 15.3.1에서는 params가 비동기 객체이므로 해당 처리를 컴포넌트 렌더링 중에 하도록 수정
+  const channelId = params?.channelId || '';
+  const { username } = useChatStore();
 
   // 사용자 이름이 설정되었는지 확인
   const hasUsername = username !== '익명';

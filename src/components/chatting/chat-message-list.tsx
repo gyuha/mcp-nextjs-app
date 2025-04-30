@@ -20,15 +20,29 @@ export function ChatMessageList({ channelId }: ChatMessageListProps) {
 
   if (channelMessages.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-4">
-        <p>아직 메시지가 없습니다.</p>
-        <p className="text-sm">채팅을 시작해보세요!</p>
+      <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-6 space-y-2">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="40"
+          height="40"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mb-2 opacity-25"
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        <p className="font-medium">대화 시작하기</p>
+        <p className="text-sm">첫 메시지를 보내서 대화를 시작해보세요!</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col p-4 overflow-y-auto">
+    <div className="flex flex-col p-5 space-y-4">
       {channelMessages.map((message) => (
         <ChatMessageItem
           key={message.id}
