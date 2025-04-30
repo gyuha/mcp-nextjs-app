@@ -4,10 +4,12 @@ import { ChatRoom } from "@/components/chatting/chat-room";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useChatStore } from "@/stores/chat-store";
+import { use } from "react";
 
 export default function RoomPage({ params }: { params: { channelId: string } }) {
-  // Next.js 15.3.1에서는 params가 비동기 객체이므로 해당 처리를 컴포넌트 렌더링 중에 하도록 수정
-  const channelId = params?.channelId || '';
+  // Next.js 15.3.1에서는 params가 Promise 객체이므로 React.use()로 unwrap 필요
+  const unwrappedParams = use(params);
+  const channelId = unwrappedParams.channelId;
   const { username } = useChatStore();
 
   // 사용자 이름이 설정되었는지 확인

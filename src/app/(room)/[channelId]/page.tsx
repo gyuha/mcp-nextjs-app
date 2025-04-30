@@ -3,12 +3,14 @@
 import { ChatRoom } from "@/components/chatting/chat-room";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useEffect } from "react";
+import { use } from "react";
 import { useChatStore } from "@/stores/chat-store";
 
-export default async function RoomPage({ params }: { params: { channelId: string } }) {
-  const { channelId } = await params;
-  const { activeChannel, username } = useChatStore();
+export default function RoomPage({ params }: { params: { channelId: string } }) {
+  // React.use()를 사용하여 params 비동기 객체 언래핑
+  const unwrappedParams = use(params);
+  const channelId = unwrappedParams.channelId;
+  const { username } = useChatStore();
 
   // 사용자 이름이 설정되었는지 확인
   const hasUsername = username !== '익명';
