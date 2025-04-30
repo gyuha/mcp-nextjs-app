@@ -8,6 +8,10 @@
         "--figma-api-key=${env:FIGMA_API_KEY}",
         "--stdio"
       ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
     }
   }
 }
