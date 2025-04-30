@@ -27,6 +27,7 @@
   - Zod (유효성 검증)
   - date-fns (날짜 처리)
   - DOMPurify (XSS 방지)
+- **패키지 매니저**: pnpm
 
 
 ## 프로젝트 구조
